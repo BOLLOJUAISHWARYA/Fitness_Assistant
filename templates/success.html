@@ -10,7 +10,6 @@
         <link rel="stylesheet" href="static/Homepage.css">
         <link rel="icon" href="/static/Home-images/logo image.jpg">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
     </head>
 
     <body>
@@ -25,10 +24,28 @@
 
         <h3 class="username">Hi welcome…!</h3>
          <form method = "post"  id="foodintake">
-             <label for="meals">How many meals per day?</label><br><br>
-             <input type="text" id="meals" name="meals" required><br><br>
-             <label for="water">How much water did you drink?</label><br><br>
-             <input type="text" id="water" name="water" required><br><br>
+             <label for="meals">How many meals you take per day?</label><br><br>
+                <select name="meals" id="meals">
+                  <option value=1>1</option>
+                  <option value=2>2</option>
+                  <option value=3>3</option>
+                  <option value=4>4</option>
+                  <option value=5>5</option>
+                  <option value=6>6</option>
+                  <option value=7>7</option>
+                </select>
+                <br><br>
+             <label for="water">How many glasses of water do you drink?</label><br><br>
+             <select name="water" id="water">
+                  <option value=1>1</option>
+                  <option value=2>2</option>
+                  <option value=3>3</option>
+                  <option value=4>4</option>
+                  <option value=5>5</option>
+                  <option value=6>6</option>
+                  <option value=7>7</option>
+                </select>
+         <br><br>
         </form>
         <button class="btn btn-info" id="tryit">Next</button>
         <br><br>
