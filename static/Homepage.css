@@ -1,4 +1,6 @@
-body{
+@import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Caveat:wght@400;700&family=Lobster&family=Monoton&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display+SC:ital,wght@0,400;0,700;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Source+Sans+Pro:ital,wght@0,400;0,700;1,700&family=Work+Sans:ital,wght@0,400;0,700;1,700&display=swap');
+
+body {
     text-align: center;
     background: rgb(9,9,121);
     background: radial-gradient(circle, rgba(9,9,121,1) 39%, rgba(2,0,36,1) 86%);
@@ -6,14 +8,14 @@ body{
 }
 
 img {
-  border-radius: 8px;
-  margin: 10px;
+    border-radius: 8px;
+    margin: 10px;
 }
 
 h3 {
-  color : white;
-  font-family: serif;
-  font-size: 30px;
+    color : white;
+    font-family: serif;
+    font-size: 30px;
 }
 
 a{
@@ -21,63 +23,70 @@ a{
 }
 
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
-/* Create two equal columns that floats next to each other */
+/ Create two equal columns that floats next to each other /
 .column {
-  float: left;
-  width: 50%;
-  padding: 30px;
-  text-align: center;
-  border-left: 2px solid white;
-  height: 500px; /* Should be removed. Only for demonstration */
+    float: left;
+    width: 50%;
+    padding: 30px;
+    text-align: center;
+    border-left: 2px solid white;
+    height: 500px; / Should be removed. Only for demonstration /
 }
-
-/* Clear floats after the columns */
+    
+/ Clear floats after the columns /
 .row:after {
-  content: "";
-  display: table;
-  clear: both;
+    content: "";
+    display: table;
+    clear: both;
 }
 
 form input{
-   color:black;
+    color:black;
 }
 
 .sidenav {
-  height: 100%;
-  width: 0;
-  position: fixed;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  background-color: #111;
-  overflow-x: hidden;
-  transition: 0.5s;
-  padding-top: 60px;
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
 }
 
 .sidenav a {
-  padding: 8px 8px 8px 32px;
-  text-decoration: none;
-  font-size: 20px;
-  color: white;
-  display: block;
-  transition: 0.3s;
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 20px;
+    color: white;
+    display: block;
+    transition: 0.3s;
 }
 
 .sidenav a:hover {
-  color: #f1f1f1;
+    color: #f1f1f1;
 }
 
 .sidenav .closebtn {
-  position: absolute;
-  top: 0;
-  right: 25px;
-  font-size: 36px;
-  margin-left: 50px;
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
 }
 
+.card {
+    background-color: white;
+    border-radius: 15px;
+    padding: 16px;
+    margin: 20px;
+    width: 60vw;
+}
 
 
