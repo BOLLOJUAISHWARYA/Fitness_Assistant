@@ -19,11 +19,11 @@ We have used Flask framework to build the application, socketio and zmq for comm
     • Tracking the exercise with proper posture
     • Automatic redirection from one exercise to other with a wait timer
 
-##Installation
+## Installation
 
 After cloning and installing requirements as per requirements.txt, run app.py and detect.py ,if you want to use in your mobile then install IP webcam and run in the background open the flask in your mobile make sure to be connected on same network. (change the host binding if required)
 
-##How to use
+## How to use
 
 ![Home](https://user-images.githubusercontent.com/59137401/175223854-d55554ea-cac2-4741-a71d-e942ed5c5523.png)
 
