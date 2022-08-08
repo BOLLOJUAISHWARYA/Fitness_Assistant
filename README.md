@@ -6,11 +6,11 @@ The main aim of this Fitness Assistant is to make its users active, fit, and hea
 
 https://user-images.githubusercontent.com/59137401/183375662-65c28018-03a9-485a-a8ea-9760ef768845.mp4
 
-## TECH/Frame work used
+## TECH DETAILS
 
 We have used Flask framework to build the application, socketio and zmq for communication , postgres to save the login details of user , mediapipe for tracking.
 
-## Features
+## FEATURES
 
     • Face login for the web app
     • Food intake form 
@@ -19,11 +19,11 @@ We have used Flask framework to build the application, socketio and zmq for comm
     • Tracking the exercise with proper posture
     • Automatic redirection from one exercise to other with a wait timer
 
-## Installation
+## INSTALLATION
 
 After cloning and installing requirements as per requirements.txt, run app.py and detect.py ,if you want to use in your mobile then install IP webcam and run in the background open the flask in your mobile make sure to be connected on same network. (change the host binding if required)
 
-## How to use
+## HOW TO USE
 
 ![Home](https://user-images.githubusercontent.com/59137401/175223854-d55554ea-cac2-4741-a71d-e942ed5c5523.png)
 
