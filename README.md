@@ -1,5 +1,29 @@
-
 ## FITNESS ASSISTANT
+
+The main aim of this Fitness Assistant is to make its users active, fit, and healthy. For this, it offers personalized fitness training that can be done anywhere anytime. It turns your smartphone into a personal fitness trainer, that utilizes media pipe to track your fitness techniques.
+
+## DEMO
+
+https://user-images.githubusercontent.com/59137401/183375662-65c28018-03a9-485a-a8ea-9760ef768845.mp4
+
+## TECH/Frame work used
+
+We have used Flask framework to build the application, socketio and zmq for communication , postgres to save the login details of user , mediapipe for tracking.
+
+## Features
+
+    • Face login for the web app
+    • Food intake form 
+    • Demo of Exercise
+    • Ip Webcam provision
+    • Tracking the exercise with proper posture
+    • Automatic redirection from one exercise to other with a wait timer
+
+##Installation
+
+After cloning and installing requirements as per requirements.txt, run app.py and detect.py ,if you want to use in your mobile then install IP webcam and run in the background open the flask in your mobile make sure to be connected on same network. (change the host binding if required)
+
+##How to use
 
 ![Home](https://user-images.githubusercontent.com/59137401/175223854-d55554ea-cac2-4741-a71d-e942ed5c5523.png)
 
@@ -25,7 +49,7 @@ STEP 6: After that in the same page, whenever you want to do exercise fill the d
 
 ![workout](https://user-images.githubusercontent.com/59137401/175224241-ab828b22-19c6-4ebe-9cc1-5d20aaf84628.png)
 
-STEP 7: GIves the option to watch the demo of exercise ,if you want to quit in between click ‘q’.
+STEP 7: Gives the option to watch the demo of exercise.
 
 ![exercise](https://user-images.githubusercontent.com/59137401/175224177-4f55d0bf-7773-41de-92a4-9b3f54148a5b.png)
 
@@ -34,10 +58,4 @@ Before proceeding to exercise make sure your body is completely visible in the c
 
 IP WEBCAM :
 User has to install an IP webcam in his mobile, with this app the user can track his exercise with his mobile camera which is linked to the Fitness webapp.
-
-As of now we have given a fixed IP address which is linked to our mobiles (IP webcam).
-
-Feature Coming up: 
-
-Currently we are working on to take IP addresses from the user or trace the IP address of the system in which the webapp is being used.
 
