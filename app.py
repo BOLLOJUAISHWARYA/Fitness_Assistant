@@ -13,6 +13,7 @@ import numpy as np
 import zmq
 import psycopg2
 from time import sleep
+from flask_session import Session
 
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
@@ -21,9 +22,9 @@ tracker = None
 status = None
 
 app = Flask(__name__)
-socketio = SocketIO(app)
-
-app.secret_key = "ussv"
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
+socketio = SocketIO(app, manage_session=False)
 
 
 # Connect to your PostgresSQL database on a remote server
@@ -180,12 +181,12 @@ def face(data):
                         dt = datetime.now()
                         cur.execute('INSERT INTO  user_logindetails(username,login) VALUES(%s,%s) ', (name, dt,))
                         conn.commit()
-                        emit('redirect', {'url': url_for('success')})
+                        emit('success', {'url': url_for('success')})
 
                     else:
                         status = "Couldn't recognise please login with password"
                         cap.release()
-                        emit('redirect', {'url': url_for('login')})
+                        emit('redirect', {'msg': "Couldn't recognise please login with password"})
 
 
 @app.route('/success')

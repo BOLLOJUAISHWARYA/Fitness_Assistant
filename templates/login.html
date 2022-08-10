@@ -58,9 +58,12 @@
             socket.on('disconnect', function(){
               socket.send("disconnected")
               });
-            socket.on('redirect', function (data) {
+            socket.on('success', function (data) {
               window.location = data.url;
               console.log(data.url)
+              });
+            socket.on('redirect', function (data) {
+              $('#log').append('<p>' + data.msg + '</p>');
               });
             socket.on('message', function(data){
               $("#img").attr("src",data.image_data)
