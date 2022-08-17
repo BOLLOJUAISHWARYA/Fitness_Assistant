@@ -13,18 +13,20 @@ import numpy as np
 import zmq
 import psycopg2
 from time import sleep
-from flask_session import Session
+# from flask_session import Session
+import pandas as pd
+import json
+import plotly
+import plotly.express as px
 
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 
-tracker = None
-status = None
-
 app = Flask(__name__)
-app.config['SESSION_TYPE'] = 'filesystem'
-Session(app)
-socketio = SocketIO(app, manage_session=False)
+
+socketio = SocketIO(app)
+name = None
+login_date_time = None
 
 
 # Connect to your PostgresSQL database on a remote server
@@ -52,6 +54,7 @@ def calculate_angle(a, b, c):
 
 @app.route('/check', methods=['POST', 'GET'])
 def check():
+    global login_date_time, name
     username = request.form.get('username')
     password = request.form.get('password')
     cur, conn = connections()
@@ -63,9 +66,10 @@ def check():
         if not cur.fetchall():
             return render_template("home.html")
         else:
-            session["username"] = request.form.get("username")
-            name = session["username"]
+            name = request.form.get("username")
             dt = datetime.now()
+            login_date_time = dt
+            print(login_date_time)
             cur.execute('INSERT INTO  user_logindetails(username,login) VALUES(%s,%s) ', (name, dt,))
             conn.commit()
             # conn.close()
@@ -108,6 +112,7 @@ def add():
         name = request.form.get('name')
         username = request.form.get('username')
         height = request.form.get('height')
+        weight = request.form.get('weight')
         password = request.form.get('password')
         cur, conn = connections()
         check_in_db = "SELECT * from details where username like %s"
@@ -118,8 +123,8 @@ def add():
             msg = "user name already exists, Register with other username"
             return render_template('register.html', msg=msg)
         else:
-            cur.execute('INSERT INTO details(name,username,height,password) VALUES (%s,%s,%s,%s)',
-                        (name, username, height, password))
+            cur.execute('INSERT INTO details(name,username,height,weight,password) VALUES (%s,%s,%s,%s,%s)',
+                        (name, username, height, weight, password))
             conn.commit()
             # conn.close()
             msg = 'Registered successfully'
@@ -134,6 +139,7 @@ def hello(data):
 
 @socketio.on("face")
 def face(data):
+    global login_date_time, name
     print(data)
 
     path = "static/users_images/"
@@ -151,7 +157,7 @@ def face(data):
 
         known_name_encodings.append(encoding)
         known_names.append(os.path.splitext(os.path.basename(image_path))[0].lower())
-        cap = cv2.VideoCapture(0) #"http://192.168.29.149:8080/video"
+        cap = cv2.VideoCapture("http://192.168.29.172:8080/video")  # "http://192.168.29.172:8080/video"
         if cap.isOpened:
             while True:
                 ret, frame = cap.read()
@@ -164,29 +170,28 @@ def face(data):
                 face_encodings = fr.face_encodings(frame, face_locations)
                 for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
                     matches = fr.compare_faces(known_name_encodings, face_encoding)
-                    name = ""
+                    user = ""
 
                     face_distances = fr.face_distance(known_name_encodings, face_encoding)
                     best_match = np.argmin(face_distances)
 
                     if matches[best_match]:
-                        name = known_names[best_match]
+                        user = known_names[best_match]
 
-                    if name in known_names:
-                        session["username"] = name
-                        print(session["username"])
-                        cap.release()
-                        name = session["username"]
+                    if user in known_names:
+                        name = user
                         print(name)
+                        cap.release()
                         dt = datetime.now()
+                        login_date_time = dt
                         cur.execute('INSERT INTO  user_logindetails(username,login) VALUES(%s,%s) ', (name, dt,))
                         conn.commit()
-                        emit('success', {'url': url_for('success')})
+                        emit('redirect', {'url': url_for('success')})
 
                     else:
                         status = "Couldn't recognise please login with password"
                         cap.release()
-                        emit('redirect', {'msg': "Couldn't recognise please login with password"})
+                        emit('redirect', {"status": status})
 
 
 @app.route('/success')
@@ -201,8 +206,8 @@ def save_img(img_base64):
     np_array = np.frombuffer(image_data, np.uint8)
     image = cv2.imdecode(np_array, cv2.IMREAD_UNCHANGED)
     # print(session['username'])
-    name = session['username']
-    # print(name)
+    # name = session['username']
+    print(name)
     img_name = "{}.jpg".format(name)
     save_path = 'static/users_images'
     completeName = os.path.join(save_path, img_name)
@@ -224,14 +229,19 @@ def food_intake():
 
 @socketio.on('light_biceps')
 def biceps(data):
+    global name, login_date_time
+    print(name)
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://127.0.0.1:7000")
-    cap = cv2.VideoCapture("http://192.168.29.149:8080/video")  # "http://192.168.29.149:8080/video"
+    cap = cv2.VideoCapture("http://192.168.29.172:8080/video")  # "http://192.168.29.172:8080/video"
+    start_time = datetime.now()  # 12:33
+    # name = session["username"]
+    cur, conn = connections()
     while cap.isOpened():
         try:
             ret, im0 = cap.read()
-            im0_small = cv2.resize(im0, (720, 480))
+            im0_small = im0
             print("shape:", im0_small.shape)
             im0_small = cv2.imencode('.jpg', im0_small)[1].tobytes()
             base_64_encoded = base64.b64encode(im0_small).decode('utf-8')
@@ -243,7 +253,22 @@ def biceps(data):
             message = socket.recv_pyobj()
             counter = message["counter"]
             video = {"base_64": message["image_data"]}
-            if counter == 5:
+            print(login_date_time)
+            print(name)
+            if counter == 2:
+                # end_time = datetime.now()
+                # diff = end_time - start_time
+                # duration = diff.total_seconds() / 60
+                # sql_query = """select weight from details WHERE username=%s"""
+                # cur.execute(sql_query, (name,))
+                # weight = int(cur.fetchone()[0])
+                # calories = 3.5 * 3 * weight * duration / 200
+                # print(calories)
+                #
+                # sql_query = """UPDATE user_logindetails SET biceps=%s WHERE login=%s and username=%s"""
+                # cur.execute(sql_query, (calories, login_date_time, name))
+                # conn.commit()
+                # conn.close()
                 break
             # emitting frame as bytes into html page
             emit("capture_2", video)
@@ -255,15 +280,15 @@ def biceps(data):
 
 
 @socketio.on('medium_lunges')
-def biceps(data):
+def lunges(data):
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://127.0.0.1:7003")
-    cap = cv2.VideoCapture("static/sample_videos/lunge_1.mp4")  # "http://192.168.29.149:8080/video"
+    cap = cv2.VideoCapture("http://192.168.29.172:8080/video")  # "http://192.168.29.149:8080//video"
     while cap.isOpened():
         try:
             ret, im0 = cap.read()
-            im0_small = cv2.resize(im0, (720, 480))
+            im0_small = im0
             print("shape:", im0_small.shape)
             im0_small = cv2.imencode('.jpg', im0_small)[1].tobytes()
             base_64_encoded = base64.b64encode(im0_small).decode('utf-8')
@@ -275,7 +300,7 @@ def biceps(data):
             message = socket.recv_pyobj()
             counter = message["counter"]
             video = {"base_64": message["image_data"]}
-            if counter == 5:
+            if counter == 3:
                 break
             # emitting frame as bytes into html page
             emit("capture_2", video)
@@ -286,22 +311,16 @@ def biceps(data):
     emit('redirect', {'url': 'medium_timer'})
 
 
-@app.route("/light_timer")
-def light():
-    print("light_timer")
-    return render_template("timer.html", timer=5, counter="light_squat")
-
-
 @socketio.on('heavy_short_head_biceps')
 def heavy_short_head_biceps(data):
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://127.0.0.1:7004")
-    cap = cv2.VideoCapture("static/sample_videos/short head biceps.mp4")
+    cap = cv2.VideoCapture("http://192.168.29.172:8080/video")
     while cap.isOpened():
         try:
             ret, im0 = cap.read()
-            im0_small = cv2.resize(im0.copy(), (480, 360))
+            im0_small = cv2.resize(im0, (1080, 1920))
             im0_small = cv2.imencode('.jpg', im0_small)[1].tobytes()
             base_64_encoded = base64.b64encode(im0_small).decode('utf-8')
             str_img_base_64 = "data:image/jpeg;base64,{}".format(base_64_encoded)
@@ -312,7 +331,7 @@ def heavy_short_head_biceps(data):
             message = socket.recv_pyobj()
             counter = message["counter"]
             video = {"base_64": message["image_data"]}
-            if counter == 4:
+            if counter == 2:
                 break
             # emitting frame as bytes into html page
             emit("capture_2", video)
@@ -326,13 +345,22 @@ def heavy_short_head_biceps(data):
 @app.route("/heavy_timer")
 def heavy():
     print("light_timer")
-    return render_template("timer.html", timer=5, counter="heavy_pushup")
+    msg = "Get ready for pushups..!"
+    return render_template("timer.html", msg=msg, timer=5, counter="heavy_pushup")
 
 
 @app.route("/medium_timer")
 def medium():
     print("light_timer")
-    return render_template("timer.html", timer=5, counter="medium_pushup")
+    msg = "Get ready for pushups..!"
+    return render_template("timer.html", msg=msg, timer=5, counter="medium_pushup")
+
+
+@app.route("/light_timer")
+def light():
+    print("light_timer")
+    msg = "Get ready for squats..!"
+    return render_template("timer.html", timer=5, counter="light_squat", msg=msg)
 
 
 @app.route("/thanks")
@@ -347,11 +375,12 @@ def squat(data):
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://127.0.0.1:7001")
-    cap = cv2.VideoCapture("http://192.168.29.149:8080/video")  # "http://192.168.29.149:8080/video"
+    cap = cv2.VideoCapture("http://192.168.29.172:8080/video")  # "http://192.168.29.149:8080/video"
     while cap.isOpened():
         try:
             ret, im0 = cap.read()
-            im0_small = cv2.resize(im0.copy(), (480, 360))
+            im0_small = im0
+            print(im0_small.shape)
             im0_small = cv2.imencode('.jpg', im0_small)[1].tobytes()
             base_64_encoded = base64.b64encode(im0_small).decode('utf-8')
             str_img_base_64 = "data:image/jpeg;base64,{}".format(base_64_encoded)
@@ -379,7 +408,7 @@ def medium_squat(data):
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://127.0.0.1:7001")
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture("http://192.168.29.172:8080/video")
     while cap.isOpened():
         try:
             ret, im0 = cap.read()
@@ -411,11 +440,12 @@ def medium_pushup(data):
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://127.0.0.1:7002")
-    cap = cv2.VideoCapture("static/sample_videos/pushup.mp4")
+    cap = cv2.VideoCapture("http://192.168.29.172:8080/video")
     while cap.isOpened():
         try:
             ret, im0 = cap.read()
-            im0_small = cv2.resize(im0.copy(), (720, 360))
+            im0_small=im0
+            # im0_small = cv2.resize(im0.copy(), (720, 360))
             im0_small = cv2.imencode('.jpg', im0_small)[1].tobytes()
             base_64_encoded = base64.b64encode(im0_small).decode('utf-8')
             str_img_base_64 = "data:image/jpeg;base64,{}".format(base_64_encoded)
@@ -443,7 +473,7 @@ def heavy_pushup(data):
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://127.0.0.1:7002")
-    cap = cv2.VideoCapture("static/sample_videos/pushup.mp4")
+    cap = cv2.VideoCapture("http://192.168.29.172:8080/video")
     while cap.isOpened():
         try:
             ret, im0 = cap.read()
@@ -458,7 +488,7 @@ def heavy_pushup(data):
             message = socket.recv_pyobj()
             counter = message["counter"]
             video = {"base_64": message["image_data"]}
-            if counter == 5:
+            if counter == 2:
                 break
             # emitting frame as bytes into html page
             emit("capture_2", video)
@@ -472,13 +502,34 @@ def heavy_pushup(data):
 @app.route('/logout')
 def logout():
     dt = datetime.now()
-    name = session['username']
     cur, conn = connections()
-    cur.execute('INSERT INTO  user_logindetails(username,logout) VALUES(%s,%s) ', (name, dt))
+    # cur.execute('INSERT INTO  user_logindetails(username,logout) VALUES(%s,%s) ', (name, dt))
     conn.commit()
     conn.close()
     return render_template("home.html")
 
 
+@app.route('/chart1')
+def chart1():
+    print("hello")
+    cur, conn = connections()
+    SQL_Query = pd.read_sql_query(
+        '''select
+           *
+          from user_logindetails''', conn)
+    df = pd.DataFrame(SQL_Query,
+                      columns=['id', 'username', 'login', 'pushup', 'biceps', 'squats', 'lunges', "short_head_biceps"])
+    print(df)
+    print('The data type of df is: ', type(df))
+    fig = px.line(df, x="login", y="biceps", color="username")
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    header = "Calories"
+    description = """
+    This chart shows the graph between data_time vs calories burnt during various exercises
+    """
+    return render_template('chart.html', graphJSON=graphJSON, header=header, description=description)
+
+
+
 if __name__ == '__main__':
-    socketio.run(app, debug=True, use_reloader=False, host='192.168.29.20')  # '192.168.29.20'
+    socketio.run(app, debug=True, use_reloader=False)  # '192.168.29.20'
