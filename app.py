@@ -186,12 +186,11 @@ def face(data):
                         login_date_time = dt
                         cur.execute('INSERT INTO  user_logindetails(username,login) VALUES(%s,%s) ', (name, dt,))
                         conn.commit()
-                        emit('redirect', {'url': url_for('success')})
+                        emit('success', {'url': url_for('success')})
 
                     else:
-                        status = "Couldn't recognise please login with password"
                         cap.release()
-                        emit('redirect', {"status": status})
+                        emit('redirect', {'msg': "Couldn't recognise please login with password"})
 
 
 @app.route('/success')
